@@ -1,0 +1,195 @@
+{
+    "clients":  [
+                    {
+                        "_id":  {
+                                    "$oid":  "0000000000000000000003e9"
+                                },
+                        "client_id":  1,
+                        "name":  "Александр Ресторанный",
+                        "phone":  "+74444444444",
+                        "email":  "restaurant1@example.test",
+                        "login":  "alex",
+                        "birthday":  {
+                                         "$date":  "1991-01-01T00:00:00Z"
+                                     },
+                        "address":  {
+                                        "city":  "Москва",
+                                        "street":  "Лесная",
+                                        "building":  "1"
+                                    },
+                        "update_time":  {
+                                            "$date":  "2026-01-16T12:00:00Z"
+                                        }
+                    },
+                    {
+                        "_id":  {
+                                    "$oid":  "0000000000000000000003ea"
+                                },
+                        "client_id":  2,
+                        "name":  "Мария Ресторанная",
+                        "email":  "restaurant2@example.test",
+                        "login":  "maria",
+                        "birthday":  {
+                                         "$date":  "1993-02-02T00:00:00Z"
+                                     },
+                        "update_time":  {
+                                            "$date":  "2026-01-16T12:00:00Z"
+                                        }
+                    }
+                ],
+    "restaurant":  [
+                       {
+                           "_id":  {
+                                       "$oid":  "0000000000000000000007d1"
+                                   },
+                           "restaurant_id":  1,
+                           "name":  "Кафе Сад",
+                           "phone":  "+75555555555",
+                           "email":  "r1@example.test",
+                           "founding_day":  {
+                                                "$date":  "2015-01-01T00:00:00Z"
+                                            },
+                           "address":  {
+                                           "city":  "Москва",
+                                           "street":  "Лесная",
+                                           "building":  "1"
+                                       }
+                       },
+                       {
+                           "_id":  {
+                                       "$oid":  "0000000000000000000007d2"
+                                   },
+                           "restaurant_id":  2,
+                           "name":  "Кафе Дом",
+                           "phone":  "+75555555555",
+                           "email":  "r2@example.test",
+                           "founding_day":  {
+                                                "$date":  "2015-01-01T00:00:00Z"
+                                            },
+                           "address":  {
+                                           "city":  "Москва",
+                                           "street":  "Лесная",
+                                           "building":  "2"
+                                       }
+                       }
+                   ],
+    "orders":  [
+                   {
+                       "_id":  {
+                                   "$oid":  "000000000000000000000bb9"
+                               },
+                       "order_id":  1,
+                       "restaurant_id":  1,
+                       "client_id":  1,
+                       "order_date":  {
+                                          "$date":  "2026-01-15T12:00:00Z"
+                                      },
+                       "ordered_dish":  [
+                                            {
+                                                "dish_id":  11,
+                                                "name":  "Суп",
+                                                "quantity":  1
+                                            },
+                                            {
+                                                "dish_id":  12,
+                                                "name":  "Чай",
+                                                "quantity":  2
+                                            }
+                                        ],
+                       "payed_by_bonuses":  {
+                                                "$numberDecimal":  "50.00"
+                                            },
+                       "cost":  {
+                                    "$numberDecimal":  "500.00"
+                                },
+                       "payment":  {
+                                       "$numberDecimal":  "450.00"
+                                   },
+                       "bonus_for_visit":  {
+                                               "$numberDecimal":  "20.00"
+                                           },
+                       "final_status":  "closed",
+                       "update_time":  {
+                                           "$date":  "2026-01-15T13:00:00Z"
+                                       }
+                   },
+                   {
+                       "_id":  {
+                                   "$oid":  "000000000000000000000bba"
+                               },
+                       "order_id":  2,
+                       "restaurant_id":  1,
+                       "client_id":  2,
+                       "order_date":  {
+                                          "$date":  "2026-01-15T12:00:00Z"
+                                      },
+                       "ordered_dish":  [
+                                            {
+                                                "dish_id":  11,
+                                                "name":  "Суп",
+                                                "quantity":  1
+                                            },
+                                            {
+                                                "dish_id":  12,
+                                                "name":  "Чай",
+                                                "quantity":  2
+                                            }
+                                        ],
+                       "payed_by_bonuses":  {
+                                                "$numberDecimal":  "0.00"
+                                            },
+                       "cost":  {
+                                    "$numberDecimal":  "300.00"
+                                },
+                       "payment":  {
+                                       "$numberDecimal":  "300.00"
+                                   },
+                       "bonus_for_visit":  {
+                                               "$numberDecimal":  "10.00"
+                                           },
+                       "final_status":  "closed",
+                       "update_time":  {
+                                           "$date":  "2026-01-15T13:00:00Z"
+                                       }
+                   },
+                   {
+                       "_id":  {
+                                   "$oid":  "000000000000000000000bbb"
+                               },
+                       "order_id":  3,
+                       "restaurant_id":  2,
+                       "client_id":  1,
+                       "order_date":  {
+                                          "$date":  "2026-01-16T12:00:00Z"
+                                      },
+                       "ordered_dish":  [
+                                            {
+                                                "dish_id":  11,
+                                                "name":  "Суп",
+                                                "quantity":  1
+                                            },
+                                            {
+                                                "dish_id":  12,
+                                                "name":  "Чай",
+                                                "quantity":  2
+                                            }
+                                        ],
+                       "payed_by_bonuses":  {
+                                                "$numberDecimal":  "0.00"
+                                            },
+                       "cost":  {
+                                    "$numberDecimal":  "200.00"
+                                },
+                       "payment":  {
+                                       "$numberDecimal":  "0.00"
+                                   },
+                       "bonus_for_visit":  {
+                                               "$numberDecimal":  "0.00"
+                                           },
+                       "final_status":  "open",
+                       "update_time":  {
+                                           "$date":  "2026-01-16T13:00:00Z"
+                                       }
+                   }
+               ]
+}

@@ -1,0 +1,1 @@
+SELECT id,CAST(format_datetime(at_timezone(date_time, current_timezone()), 'yyyyMMdd') AS INTEGER) AS date_key,'external:client:' || CAST(client_id AS VARCHAR) AS client_key,date_time,quantity,payment_amount FROM lake.stg.pg_external_order_statuses WHERE batch_id = '{{batch_id}}'

@@ -1,0 +1,1 @@
+SELECT id,CAST(format_datetime(at_timezone(date_time, current_timezone()), 'yyyyMMdd') AS INTEGER) AS date_key,'external:client:' || CAST(client_id AS VARCHAR) AS client_key,date_time,BIGINT '1' AS event_count FROM lake.stg.pg_external_user_behavior WHERE batch_id = '{{batch_id}}'

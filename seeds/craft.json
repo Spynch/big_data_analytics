@@ -1,0 +1,38 @@
+{
+  "master": [
+    {"master_id":1,"name":"Ирина Мастер","phone":"+70000000001","address":"Москва","birthday":"1980-03-01"},
+    {"master_id":2,"name":"Олег Мастер","phone":"+70000000002","address":"Казань","birthday":"1985-04-02"}
+  ],
+  "product": [
+    {"product_id":1,"name":"Кружка","description":"Ручная керамика","type":"ceramics"},
+    {"product_id":2,"name":"Брошь","description":"Украшение","type":"jewelry"},
+    {"product_id":3,"name":"Шкатулка","description":"Дерево","type":"wood"}
+  ],
+  "master_product": [
+    {"id":1,"master_id":1,"product_id":1,"price":"100.00"},
+    {"id":2,"master_id":2,"product_id":1,"price":"180.00"},
+    {"id":3,"master_id":1,"product_id":2,"price":"300.00"},
+    {"id":4,"master_id":2,"product_id":2,"price":"350.00"},
+    {"id":5,"master_id":1,"product_id":3,"price":"250.00"},
+    {"id":6,"master_id":2,"product_id":3,"price":"400.00"}
+  ],
+  "client": [
+    {"client_id":1,"name":"Анна","phone":"+71111111111","address":"Москва","birthday":"1990-01-05","email":"anna@example.test"},
+    {"client_id":2,"name":"Борис","phone":"+72222222222","address":"Казань","birthday":"1992-02-06","email":"boris@example.test"},
+    {"client_id":3,"name":"Вера","phone":"+73333333333","address":"Тула","birthday":"1988-03-07","email":"vera@example.test"},
+    {"client_id":4,"name":"Без заказов","phone":null,"address":null,"birthday":null,"email":"empty@example.test"}
+  ],
+  "order": [
+    {"order_id":1,"master_id":1,"product_id":1,"client_id":1,"order_date":"2026-01-01T12:00:00Z","delivery_date":"2026-01-02T12:00:00Z","status":"done","order_price":"100.00","paid_at":"2026-01-01T12:00:00Z"},
+    {"order_id":2,"master_id":2,"product_id":2,"client_id":1,"order_date":"2026-01-03T12:00:00Z","delivery_date":"2026-01-06T12:00:00Z","status":"done","order_price":"350.00","paid_at":"2026-01-03T12:00:00Z"},
+    {"order_id":3,"master_id":1,"product_id":3,"client_id":1,"order_date":"2026-01-31T12:00:00Z","delivery_date":"2026-02-02T00:00:00Z","status":"done","order_price":"250.00","paid_at":null},
+    {"order_id":4,"master_id":2,"product_id":1,"client_id":1,"order_date":"2026-02-05T12:00:00Z","delivery_date":null,"status":"in_progress","order_price":"180.00","paid_at":"2026-02-05T12:00:00Z"},
+    {"order_id":5,"master_id":2,"product_id":3,"client_id":1,"order_date":"2026-03-05T12:00:00Z","delivery_date":null,"status":"cancelled","order_price":"400.00","paid_at":null},
+    {"order_id":6,"master_id":1,"product_id":1,"client_id":2,"order_date":"2026-02-10T12:00:00Z","delivery_date":null,"status":"created","order_price":"100.00","paid_at":null},
+    {"order_id":7,"master_id":1,"product_id":2,"client_id":2,"order_date":"2026-02-12T12:00:00Z","delivery_date":null,"status":"in_progress","order_price":"300.00","paid_at":"2026-02-13T12:00:00Z"},
+    {"order_id":8,"master_id":1,"product_id":1,"client_id":3,"order_date":"2026-03-01T12:00:00Z","delivery_date":"2026-03-02T12:00:00Z","status":"done","order_price":"100.00","paid_at":"2026-03-01T12:00:00Z"},
+    {"order_id":9,"master_id":1,"product_id":1,"client_id":3,"order_date":"2026-03-03T12:00:00Z","delivery_date":"2026-03-04T12:00:00Z","status":"done","order_price":"100.00","paid_at":null},
+    {"order_id":10,"master_id":2,"product_id":3,"client_id":3,"order_date":"2026-03-01T12:00:00Z","delivery_date":"2026-03-11T12:00:00Z","status":"done","order_price":"400.00","paid_at":"2026-03-05T12:00:00Z"},
+    {"order_id":11,"master_id":2,"product_id":1,"client_id":2,"order_date":"2026-02-20T12:00:00Z","delivery_date":null,"status":"delivery","order_price":"180.00","paid_at":null}
+  ]
+}

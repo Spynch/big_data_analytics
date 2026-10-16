@@ -1,0 +1,12 @@
+<clickhouse>
+  <listen_host>0.0.0.0</listen_host>
+  <named_collections>
+    <warehouse_s3>
+      <access_key_id from_env="S3_READ_USER"/>
+      <secret_access_key from_env="S3_READ_PASSWORD"/>
+      <format>Parquet</format>
+    </warehouse_s3>
+  </named_collections>
+  <logger><level>warning</level></logger>
+  <max_server_memory_usage>2147483648</max_server_memory_usage>
+</clickhouse>

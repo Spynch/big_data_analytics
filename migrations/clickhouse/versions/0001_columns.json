@@ -1,0 +1,7 @@
+{
+  "craft_customer_monthly": "`id` String, `client_id` Int64, `client_name` String, `client_address` Nullable(String), `client_birthday` Nullable(Date32), `client_email` Nullable(String), `paid_orders_amount_all_time` Decimal(38,2), `orders_count_month` Int64, `avg_order_amount_month` Nullable(Decimal(38,2)), `median_completion_days_month` Nullable(Decimal(18,4)), `most_popular_category_month` Nullable(String), `most_popular_master_id_month` Nullable(Int64), `created_orders_count_month` Int64, `in_progress_orders_count_month` Int64, `completed_orders_count_month` Int64, `unfinished_orders_count_month` Int64, `report_period` String",
+  "restaurant_daily_sales": "`report_date` Date32, `restaurant_id` Int64, `restaurant_name` String, `orders_count` Int64, `cost_total` Decimal(38,2), `payment_total` Decimal(38,2), `bonus_for_visit_total` Decimal(38,2)",
+  "external_client_activity_daily": "`report_date` Date32, `client_id` Int64, `behavior_events_count` Int64, `quantity_total` Int64, `payment_amount_total` Decimal(38,2)",
+  "marketing_daily_sales": "`report_date` Date32, `sales_qty` Int64, `sales_amt` Decimal(38,2)",
+  "external_order_statuses_daily": "`report_date` Date32, `client_id` Int64, `quantity_total` Int64, `payment_amount_total` Decimal(38,2)"
+}

@@ -1,0 +1,1 @@
+SELECT 'external:client:' || CAST(client_id AS VARCHAR) AS client_key,client_id FROM (SELECT client_id FROM lake.stg.pg_external_order_statuses WHERE batch_id = '{{batch_id}}' UNION SELECT client_id FROM lake.stg.pg_external_user_behavior WHERE batch_id = '{{batch_id}}') t

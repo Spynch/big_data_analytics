@@ -218,3 +218,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local warehouse verification output and credentials
+artifacts/
+.env.*
+!.env.example

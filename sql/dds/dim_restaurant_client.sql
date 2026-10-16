@@ -1,0 +1,1 @@
+SELECT 'restaurant:client:' || CAST(client_id AS VARCHAR) AS client_key, client_id, _id AS mongo_id, name, phone, email, login, birthday, address FROM lake.stg.mongo_clients WHERE batch_id = '{{batch_id}}'
