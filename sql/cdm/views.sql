@@ -1,8 +1,3 @@
--- PostgreSQL CDM: ordinary views over the DDS tables specified in
--- warehouse-compose-spec.md. All reporting dates use UTC.
--- Run after the DDS migrations. No data refresh is required for these views.
-
-
 CREATE SCHEMA IF NOT EXISTS cdm;
 
 CREATE OR REPLACE VIEW cdm.craft_customer_monthly AS

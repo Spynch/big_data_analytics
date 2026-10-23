@@ -195,11 +195,3 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test.ps1
 | python-dotenv / tzdata | `1.2.3` / `2026.4` |
 
 Дополнительные пакеты устанавливаются при сборке. Версии согласованы с [constraints Airflow 3.3.2 / Python 3.12](https://raw.githubusercontent.com/apache/airflow/constraints-3.3.2/constraints-3.12.txt). Использованы документация [Airflow Docker](https://airflow.apache.org/docs/apache-airflow/3.3.2/howto/docker-compose/index.html), [LocalExecutor](https://airflow.apache.org/docs/apache-airflow/3.3.2/core-concepts/executor/local.html), [SimpleAuthManager](https://airflow.apache.org/docs/apache-airflow/3.3.2/core-concepts/auth-manager/simple/index.html), [PostgreSQL VIEW](https://www.postgresql.org/docs/17/sql-createview.html), [агрегатов PostgreSQL](https://www.postgresql.org/docs/17/functions-aggregate.html), [Alembic](https://alembic.sqlalchemy.org/en/latest/cookbook.html) и [MongoDB Extended JSON](https://www.mongodb.com/docs/languages/python/pymongo-driver/current/data-formats/extended-json/).
-
-## Данные прежней архитектуры
-
-Существующие тома прежних PostgreSQL/MongoDB, MinIO, ClickHouse и других компонентов не удаляются и не подключаются автоматически. Новая версия использует тома с суффиксом `_v3`. Не используйте `down --volumes` для проекта с нужными данными.
-
-Для переноса реального источника сначала сделайте резервную копию старых томов/БД, проверьте схему отдельно и подготовьте явную миграцию или импорт в новые источники. Начальные ревизии рассчитаны на пустые базы. Историческую цену заказа следует восстанавливать из подтверждённых заказов/платежей; текущая цена предложения не доказывает прошлую цену. Ревизия `s002` диагностирует существующие заказы без исторической цены вместо автоматического заполнения.
-
-После переноса источников запускается обычный refresh. Перенос результатов старых аналитических движков не нужен для пересчёта CDM. Старые ключи в существующем `.env` сохраняются скриптом и новым Compose не используются; ненужные настройки можно удалить вручную после проверки переноса. Автоматический перенос прежних данных и промышленная настройка Airflow не входят в эту учебную реализацию.
