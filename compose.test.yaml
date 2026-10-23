@@ -1,0 +1,7 @@
+services:
+  postgres-source:
+    ports: !reset []
+  postgres-dwh:
+    ports: !reset []
+  mongo-source:
+    ports: !reset []

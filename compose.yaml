@@ -1,0 +1,160 @@
+name: ${COMPOSE_PROJECT_NAME:-warehouse}
+
+x-runtime: &runtime
+  image: warehouse-postgres-runtime:3.3.2
+  build: .
+  env_file: .env
+  environment: &runtime-env
+    SOURCE_HOST: postgres-source
+    DWH_HOST: postgres-dwh
+    MONGO_HOST: mongo-source
+    SOURCE_CONNECT_PORT: 5432
+    DWH_CONNECT_PORT: 5432
+    MONGO_CONNECT_PORT: 27017
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__PARALLELISM: 2
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/warehouse/dags
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: ${AIRFLOW_ADMIN:-admin}:admin
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/logs/auth/passwords.json
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Run scripts/init-env.ps1}
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?Run scripts/init-env.ps1}
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
+    AIRFLOW__DAG_PROCESSOR__REFRESH_INTERVAL: 10
+    AIRFLOW__LOGGING__WORKER_LOG_SERVER_PORT: 8793
+  volumes:
+    - airflow_logs_v3:/opt/airflow/logs
+  depends_on: &databases
+    postgres-source:
+      condition: service_healthy
+    postgres-dwh:
+      condition: service_healthy
+    mongo-source:
+      condition: service_healthy
+
+services:
+  postgres-source:
+    image: postgres:17.11
+    environment:
+      POSTGRES_DB: ${SOURCE_DB:-source}
+      POSTGRES_USER: ${SOURCE_ADMIN:-source_migrator}
+      POSTGRES_PASSWORD: ${SOURCE_PASSWORD:?Run scripts/init-env.ps1}
+      SOURCE_ETL_USER: ${SOURCE_ETL_USER:-source_reader}
+      SOURCE_ETL_PASSWORD: ${SOURCE_ETL_PASSWORD:?Run scripts/init-env.ps1}
+      SOURCE_APP_USER: ${SOURCE_APP_USER:-source_app}
+      SOURCE_APP_PASSWORD: ${SOURCE_APP_PASSWORD:?Run scripts/init-env.ps1}
+    ports:
+      - '127.0.0.1:${SOURCE_PORT:-5433}:5432'
+    volumes:
+      - pg_source_v3:/var/lib/postgresql/data
+      - ./scripts/init-source.sh:/docker-entrypoint-initdb.d/10-source.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  postgres-dwh:
+    image: postgres:17.11
+    environment:
+      POSTGRES_DB: ${DWH_DB:-warehouse}
+      POSTGRES_USER: ${DWH_ADMIN:-warehouse_migrator}
+      POSTGRES_PASSWORD: ${DWH_PASSWORD:?Run scripts/init-env.ps1}
+      DWH_ETL_USER: ${DWH_ETL_USER:-warehouse_etl}
+      DWH_ETL_PASSWORD: ${DWH_ETL_PASSWORD:?Run scripts/init-env.ps1}
+      REPORT_USER: ${REPORT_USER:-report_reader}
+      REPORT_PASSWORD: ${REPORT_PASSWORD:?Run scripts/init-env.ps1}
+      AIRFLOW_DB: ${AIRFLOW_DB:-airflow}
+      AIRFLOW_DB_USER: ${AIRFLOW_DB_USER:-airflow}
+      AIRFLOW_DB_PASSWORD: ${AIRFLOW_DB_PASSWORD:?Run scripts/init-env.ps1}
+    ports:
+      - '127.0.0.1:${DWH_PORT:-5434}:5432'
+    volumes:
+      - pg_dwh_v3:/var/lib/postgresql/data
+      - ./scripts/init-dwh.sh:/docker-entrypoint-initdb.d/10-dwh.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  mongo-source:
+    image: mongo:8.0.34
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ADMIN:-mongo_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Run scripts/init-env.ps1}
+    ports:
+      - '127.0.0.1:${MONGO_PORT:-27017}:27017'
+    volumes:
+      - mongo_source_v3:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, 'quit(db.adminCommand({ping: 1}).ok ? 0 : 1)']
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  migrate:
+    <<: *runtime
+    profiles: [tools]
+    command: [python, -m, warehouse.migrate]
+
+  seed:
+    <<: *runtime
+    profiles: [tools]
+    command: [python, -m, warehouse.seed]
+
+  smoke-test:
+    <<: *runtime
+    profiles: [tools]
+    command: [python, -m, warehouse.smoke]
+
+  airflow-init:
+    <<: *runtime
+    profiles: [tools]
+    command: [python, -m, airflow_utils.airflow_entrypoint, db, migrate]
+
+  airflow-api-server:
+    <<: *runtime
+    command: [python, -m, airflow_utils.airflow_entrypoint, api-server]
+    ports:
+      - '127.0.0.1:${AIRFLOW_PORT:-8080}:8080'
+    healthcheck:
+      test: [CMD, curl, --fail, http://localhost:8080/api/v2/monitor/health]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  airflow-scheduler:
+    <<: *runtime
+    hostname: airflow-scheduler
+    command: [python, -m, airflow_utils.airflow_entrypoint, scheduler]
+    depends_on:
+      <<: *databases
+      airflow-api-server:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, --fail, http://localhost:8974/health]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+  airflow-dag-processor:
+    <<: *runtime
+    command: [python, -m, airflow_utils.airflow_entrypoint, dag-processor]
+    healthcheck:
+      test: [CMD, python, -m, airflow_utils.airflow_entrypoint, jobs, check, --job-type, DagProcessorJob, --local]
+      interval: 15s
+      timeout: 15s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  pg_source_v3:
+  pg_dwh_v3:
+  mongo_source_v3:
+  airflow_logs_v3:
