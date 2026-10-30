@@ -89,7 +89,7 @@ SELECT
     c.birthday AS client_birthday,
     c.email AS client_email,
     coalesce(pt.paid_orders_amount_all_time, 0::numeric) AS paid_orders_amount_all_time,
-    coalesce(ct.completed_orders_count_month, 0::bigint) AS orders_count_month,
+    coalesce(cr.created_orders_count_month, 0::bigint) AS orders_count_month,
     ct.avg_order_amount_month,
     ct.median_completion_days_month,
     rc.product_type AS most_popular_category_month,

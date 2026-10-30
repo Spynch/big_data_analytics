@@ -107,8 +107,8 @@ SELECT
     c.birthday AS client_birthday,
     c.email AS client_email,
     coalesce(pt.paid_orders_amount_all_time, 0::numeric) AS paid_orders_amount_all_time,
-    -- По ТЗ количество заказов за месяц совпадает с количеством завершённых.
-    coalesce(ct.completed_orders_count_month, 0::bigint) AS orders_count_month,
+    -- Общее количество заказов относится к месяцу создания и не дублирует completed.
+    coalesce(cr.created_orders_count_month, 0::bigint) AS orders_count_month,
     -- Без завершённых заказов среднее, медиана, категория и мастер остаются NULL.
     ct.avg_order_amount_month,
     ct.median_completion_days_month,

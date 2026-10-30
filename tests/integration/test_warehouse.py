@@ -76,9 +76,10 @@ class WarehouseIntegration(unittest.TestCase):
     def test_monthly_cohorts_payment_and_medians(self):
         january = self.monthly(1, '2026-01')
         february = self.monthly(1, '2026-02')
-        self.assertEqual((1, 0), (january['created_orders_count_month'], january['orders_count_month']))
+        self.assertEqual((1, 1), (january['created_orders_count_month'], january['orders_count_month']))
         self.assertIsNone(january['avg_order_amount_month'])
-        self.assertEqual((2, 3), (february['created_orders_count_month'], february['orders_count_month']))
+        self.assertEqual((2, 2), (february['created_orders_count_month'], february['orders_count_month']))
+        self.assertEqual(3, february['completed_orders_count_month'])
         self.assertEqual(Decimal('133.33'), february['avg_order_amount_month'])
         self.assertEqual(Decimal('1.0000'), february['median_completion_days_month'])
         self.assertEqual(Decimal('200.00'), february['paid_orders_amount_all_time'])
@@ -92,7 +93,7 @@ class WarehouseIntegration(unittest.TestCase):
         self.assertEqual(1, self.monthly(5, '2026-02')['created_orders_count_month'])
         self.assertIsNone(self.monthly(6, '2026-02'))
         for row in (january, february, tied):
-            self.assertEqual(row['orders_count_month'], row['completed_orders_count_month'])
+            self.assertEqual(row['orders_count_month'], row['created_orders_count_month'])
             expected = hashlib.md5(f"craft:{row['client_id']}:{row['report_period']}".encode()).hexdigest()
             self.assertEqual(expected, row['id'])
 
@@ -212,6 +213,13 @@ class WarehouseIntegration(unittest.TestCase):
         self.assertEqual('Changed', self.scalar('SELECT name FROM dds.dim_craft_client WHERE client_id=1'))
         self.assertEqual(0, self.scalar('SELECT count(*) FROM dds.fact_craft_orders WHERE order_id=2'))
         self.assertEqual(0, self.scalar('SELECT count(*) FROM dds.fact_restaurant_orders WHERE order_id=2'))
+
+    def test_postgres_etl_reader_uses_only_the_audit_log(self):
+        with self.pg('source') as connection:
+            self.assertGreater(connection.execute('SELECT count(*) FROM public.logs').fetchone()[0], 0)
+            with self.assertRaises(psycopg.errors.InsufficientPrivilege):
+                connection.execute('SELECT * FROM public.client')
+            connection.rollback()
 
     def test_failure_after_stg_and_craft_load_rolls_back_everything(self):
         before = self.snapshot()

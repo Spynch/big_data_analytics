@@ -30,11 +30,12 @@ def validate_warehouse(connection):
         raise ValueError('Craft order references a missing master/product offer')
     if connection.execute('''
         SELECT EXISTS (SELECT 1 FROM cdm.craft_customer_monthly
-            WHERE orders_count_month <> completed_orders_count_month)
+            WHERE orders_count_month < 0 OR created_orders_count_month < 0
+                OR completed_orders_count_month < 0 OR unfinished_orders_count_month < 0)
         OR EXISTS (SELECT 1 FROM cdm.craft_customer_monthly
             GROUP BY client_id, report_period HAVING count(*) <> 1)
     ''').fetchone()[0]:
-        raise ValueError('Invalid monthly customer grain or completed count')
+        raise ValueError('Invalid monthly customer grain or order counts')
     kinds = connection.execute('''
         SELECT relkind FROM pg_class JOIN pg_namespace n ON n.oid = relnamespace
         WHERE n.nspname = 'cdm'
