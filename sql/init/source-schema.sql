@@ -25,7 +25,8 @@ CREATE TABLE public.client (
     name TEXT NOT NULL,
     phone TEXT,
     address TEXT,
-    birthday DATE
+    birthday DATE,
+    email TEXT
 );
 CREATE TABLE public."order" (
     order_id BIGINT PRIMARY KEY,
@@ -35,6 +36,8 @@ CREATE TABLE public."order" (
     order_date TIMESTAMPTZ NOT NULL,
     delivery_date TIMESTAMPTZ,
     status TEXT NOT NULL CHECK (status IN ('created', 'in_progress', 'in progress', 'delivery', 'done', 'cancelled')),
+    order_price NUMERIC(18,2) NOT NULL CHECK (order_price >= 0),
+    paid_at TIMESTAMPTZ,
     FOREIGN KEY (master_id, product_id) REFERENCES public.master_product (master_id, product_id),
     CHECK ((status = 'done' AND delivery_date IS NOT NULL AND delivery_date >= order_date)
         OR (status <> 'done' AND delivery_date IS NULL))
@@ -75,6 +78,17 @@ BEGIN
     RETURN NULL;
 END;
 $$;
+
+CREATE FUNCTION public.snapshot_order_price() RETURNS trigger
+LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    SELECT price INTO NEW.order_price FROM public.master_product
+    WHERE master_id = NEW.master_id AND product_id = NEW.product_id;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER snapshot_order_price BEFORE INSERT ON public."order"
+FOR EACH ROW EXECUTE FUNCTION public.snapshot_order_price();
 
 CREATE FUNCTION public.audit_truncate() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $$

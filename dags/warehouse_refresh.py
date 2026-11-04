@@ -1,24 +1,24 @@
-from datetime import datetime, timedelta, timezone
 import os
+from datetime import datetime, timedelta, timezone
 
 from airflow.sdk import dag, task
 
+from airflow_utils.refresh import refresh_warehouse
+from warehouse.config import Settings
+
 
 @dag(
-    dag_id='warehouse_refresh',
+    dag_id="warehouse_refresh",
     start_date=datetime(2026, 1, 1, tzinfo=timezone.utc),
-    schedule=os.getenv('AIRFLOW_SCHEDULE', '@hourly'),
+    schedule=os.getenv("AIRFLOW_SCHEDULE", "@hourly"),
     catchup=False,
     max_active_runs=1,
-    default_args={'retries': 1, 'retry_delay': timedelta(seconds=30)},
-    tags=['warehouse'],
+    default_args={"retries": 1, "retry_delay": timedelta(seconds=30)},
+    tags=["warehouse"],
 )
 def warehouse_refresh():
-    @task(task_id='refresh_warehouse', do_xcom_push=False)
+    @task(task_id="refresh_warehouse", do_xcom_push=False)
     def refresh():
-        from warehouse.config import Settings
-        from airflow_utils.refresh import refresh_warehouse
-
         refresh_warehouse(Settings.from_env())
 
     refresh()
