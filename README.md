@@ -26,7 +26,7 @@ docker compose run --rm seed
 
 После запуска Airflow доступен по адресу http://127.0.0.1:8080. Логин и пароль по умолчанию: `admin` / `admin`.
 
-В интерфейсе Airflow нужно включить DAG `warehouse_refresh` и запустить его. Для проверки без интерфейса можно выполнить ту же загрузку напрямую:
+В интерфейсе Airflow можно запустить DAG `warehouse_refresh`. Для проверки без интерфейса можно выполнить ту же загрузку напрямую:
 
 ```bash
 docker compose run --rm refresh

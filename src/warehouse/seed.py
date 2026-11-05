@@ -6,7 +6,7 @@ from bson import Decimal128, ObjectId
 
 from airflow_utils.mongo_source import mongo_client
 from warehouse.config import ROOT, Settings
-from warehouse.csv_import import import_csvs, upsert_rows
+from warehouse.csv_import import import_csvs, insert_rows
 
 
 def utc(value):
@@ -14,7 +14,7 @@ def utc(value):
 
 
 def seed_postgres(connection):
-    upsert_rows(
+    insert_rows(
         connection,
         "public",
         "master",
@@ -24,7 +24,7 @@ def seed_postgres(connection):
             (2, "Boris Master", "+70000000002", "Kazan", "1985-02-02"),
         ],
     )
-    upsert_rows(
+    insert_rows(
         connection,
         "public",
         "product",
@@ -34,7 +34,7 @@ def seed_postgres(connection):
             (2, "Scarf", "Wool scarf", "textile"),
         ],
     )
-    upsert_rows(
+    insert_rows(
         connection,
         "public",
         "master_product",
@@ -56,7 +56,7 @@ def seed_postgres(connection):
         )
         for key in range(1, 7)
     ]
-    upsert_rows(
+    insert_rows(
         connection,
         "public",
         "client",
@@ -113,7 +113,7 @@ def seed_postgres(connection):
         (10, 1, 1, 3, "2026-02-03T10:00:00Z", None, "delivery", None),
         (11, 1, 1, 5, "2026-01-31T23:30:00-03:00", "2026-02-02T02:30:00Z", "done", None),
     ]
-    upsert_rows(connection, "public", "order", columns, orders)
+    insert_rows(connection, "public", "order", columns, orders)
 
 
 def seed_mongo(database):
@@ -157,13 +157,12 @@ def seed_mongo(database):
         }
         for key in (1, 2, 3)
     ]
-    collections = (
-        ("restaurant", [restaurant], "restaurant_id"),
-        ("clients", clients, "client_id"),
-        ("orders", orders, "order_id"),
-    )
-    for collection, documents, key in collections:
-        database[collection].create_index(key, unique=True)
+    collections = {
+        "restaurant": [restaurant],
+        "clients": clients,
+        "orders": orders,
+    }
+    for collection, documents in collections.items():
         for document in documents:
             database[collection].replace_one({"_id": document["_id"]}, document, upsert=True)
 

@@ -1,6 +1,6 @@
 import json
 
-from bson import ObjectId, json_util
+from bson import json_util
 from pymongo import MongoClient
 
 COLLECTIONS = {"clients": "client_id", "orders": "order_id", "restaurant": "restaurant_id"}
@@ -25,8 +25,6 @@ def extract_mongo(settings):
         for collection in COLLECTIONS:
             rows = []
             for document in database[collection].find().sort("_id", 1):
-                if not isinstance(document["_id"], ObjectId):
-                    raise ValueError(f"{collection}: _id must be ObjectId")
                 raw = json_util.dumps(
                     document,
                     json_options=json_util.CANONICAL_JSON_OPTIONS,

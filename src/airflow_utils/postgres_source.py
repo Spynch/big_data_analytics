@@ -1,45 +1,24 @@
-from dataclasses import dataclass
-
 import psycopg
-from psycopg import sql
 
 
-@dataclass(frozen=True)
-class SourceTable:
-    schema: str
-    name: str
-    target: str
-    columns: tuple[str, ...]
-
-
-TABLES = (
-    SourceTable(
-        "public",
-        "master",
+TABLES = {
+    ("public", "master"): (
         "pg_public_master",
         ("master_id", "name", "phone", "address", "birthday"),
     ),
-    SourceTable(
-        "public",
-        "product",
+    ("public", "product"): (
         "pg_public_product",
         ("product_id", "name", "description", "type"),
     ),
-    SourceTable(
-        "public",
-        "master_product",
+    ("public", "master_product"): (
         "pg_public_master_product",
         ("id", "master_id", "product_id", "price"),
     ),
-    SourceTable(
-        "public",
-        "client",
+    ("public", "client"): (
         "pg_public_client",
         ("client_id", "name", "phone", "address", "birthday", "email"),
     ),
-    SourceTable(
-        "public",
-        "order",
+    ("public", "order"): (
         "pg_public_order",
         (
             "order_id",
@@ -53,37 +32,28 @@ TABLES = (
             "paid_at",
         ),
     ),
-    SourceTable(
-        "external_source",
-        "order_statuses",
+    ("external_source", "order_statuses"): (
         "pg_external_order_statuses",
         ("id", "date_time", "client_id", "quantity", "payment_amount"),
     ),
-    SourceTable(
-        "external_source",
-        "user_behavior",
+    ("external_source", "user_behavior"): (
         "pg_external_user_behavior",
         ("id", "date_time", "client_id"),
     ),
-    SourceTable(
-        "external_source",
-        "marketing_research",
+    ("external_source", "marketing_research"): (
         "pg_external_marketing_research",
         ("id", "date_id", "sales_qty", "sales_amt"),
     ),
-)
-
-LOG_COLUMNS = ("id", "changed_at", "object_schema", "object_type", "operation", "object_value")
+}
 
 
 def extract_postgres_events(settings, last_loaded_id):
     """Читает новые события журнала."""
+    query = """
+        SELECT id, changed_at, object_schema, object_type, operation, object_value::text
+        FROM public.logs
+        WHERE id > %s
+        ORDER BY id
+    """
     with psycopg.connect(settings.dsn("source")) as connection:
-        columns = sql.SQL(", ").join(
-            sql.SQL("{}::text").format(sql.Identifier(column))
-            if column == "object_value"
-            else sql.Identifier(column)
-            for column in LOG_COLUMNS
-        )
-        query = sql.SQL("SELECT {} FROM public.logs WHERE id > %s ORDER BY id").format(columns)
         return connection.execute(query, (last_loaded_id,)).fetchall()

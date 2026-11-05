@@ -21,7 +21,7 @@ WITH dates AS (
     UNION SELECT (date_time AT TIME ZONE 'UTC')::date FROM stg.pg_external_order_statuses
     UNION SELECT (date_time AT TIME ZONE 'UTC')::date FROM stg.pg_external_user_behavior
     UNION SELECT stg.marketing_date(date_id) FROM stg.pg_external_marketing_research
-    UNION SELECT (stg.source_timestamp(payload->'order_date', current_setting('warehouse.source_timezone')) AT TIME ZONE 'UTC')::date
+    UNION SELECT (stg.source_timestamp(payload->'order_date') AT TIME ZONE 'UTC')::date
           FROM stg.mongo_orders
 )
 SELECT to_char(day, 'YYYYMMDD')::integer, day, extract(year FROM day), extract(quarter FROM day),
@@ -67,7 +67,7 @@ SELECT stg.bson_text(payload->'order_id')::bigint, source_id,
     stg.bson_text(payload->'cost')::numeric(18,2), stg.bson_text(payload->'payment')::numeric(18,2),
     stg.bson_text(payload->'payed_by_bonuses')::numeric(18,2), stg.bson_text(payload->'bonus_for_visit')::numeric(18,2)
 FROM stg.mongo_orders
-CROSS JOIN LATERAL (SELECT stg.source_timestamp(payload->'order_date', current_setting('warehouse.source_timezone')) AS order_date) parsed;
+CROSS JOIN LATERAL (SELECT stg.source_timestamp(payload->'order_date') AS order_date) parsed;
 INSERT INTO dds.fact_external_order_statuses
 SELECT id, to_char(date_time AT TIME ZONE 'UTC', 'YYYYMMDD')::integer, client_id, date_time, quantity, payment_amount
 FROM stg.pg_external_order_statuses;

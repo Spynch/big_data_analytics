@@ -20,10 +20,6 @@ def refresh_warehouse(settings):
         postgres_events = extract_postgres_events(settings, last_loaded_id)
         mongo = extract_mongo(settings)
         connection.execute("SET LOCAL TIME ZONE 'UTC'")
-        connection.execute(
-            "SELECT set_config('warehouse.source_timezone', %s, true)",
-            (settings.get("SOURCE_TIMEZONE"),),
-        )
         applied_events = load_stg(connection, postgres_events, mongo, extracted_at)
         connection.execute((ROOT / "sql" / "dds" / "rebuild.sql").read_text(encoding="utf-8"))
         logger.info(

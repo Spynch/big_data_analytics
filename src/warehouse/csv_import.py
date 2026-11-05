@@ -1,51 +1,31 @@
 import csv
-import re
 from datetime import datetime, timezone
 from decimal import Decimal
 from zoneinfo import ZoneInfo
 
-import psycopg
 from psycopg import sql
 
-from warehouse.config import ROOT, Settings
 
-
-def parse_timestamp(raw, source_timezone):
-    raw = raw.strip()
-    if re.fullmatch(r"\d{2}\.\d{2}\.\d{4}( \d{2}:\d{2}:\d{2})?", raw):
-        value = datetime.strptime(raw, "%d.%m.%Y %H:%M:%S" if " " in raw else "%d.%m.%Y")
-    elif re.fullmatch(
-        r"\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?"
-        r"(Z|[+-]\d{2}:?\d{2})?)?",
-        raw,
-    ):
-        value = datetime.fromisoformat(raw)
+def parse_timestamp(value, source_timezone):
+    value = value.strip()
+    if "." in value:
+        timestamp = datetime.strptime(value, "%d.%m.%Y %H:%M:%S")
     else:
-        raise ValueError(f"Invalid source date: {raw}")
-    if value.tzinfo is None:
-        value = value.replace(tzinfo=ZoneInfo(source_timezone))
-    return value.astimezone(timezone.utc)
+        timestamp = datetime.fromisoformat(value)
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=ZoneInfo(source_timezone))
+    return timestamp.astimezone(timezone.utc)
 
 
-def upsert_rows(connection, schema, table, columns, rows, update_columns=None):
-    updates = tuple(update_columns or columns[1:])
-    assignments = sql.SQL(", ").join(
-        sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(column), sql.Identifier(column))
-        for column in updates
-    )
-    old = sql.SQL(", ").join(sql.Identifier("current_row", c) for c in updates)
-    new = sql.SQL(", ").join(sql.Identifier("excluded", c) for c in updates)
+def insert_rows(connection, schema, table, columns, rows):
     query = sql.SQL("""
-        INSERT INTO {} AS current_row ({}) VALUES ({})
-        ON CONFLICT ({}) DO UPDATE SET {} WHERE ({}) IS DISTINCT FROM ({})
+        INSERT INTO {} ({}) VALUES ({})
+        ON CONFLICT ({}) DO NOTHING
     """).format(
         sql.Identifier(schema, table),
         sql.SQL(", ").join(map(sql.Identifier, columns)),
         sql.SQL(", ").join(sql.Placeholder() for _ in columns),
         sql.Identifier(columns[0]),
-        assignments,
-        old,
-        new,
     )
     with connection.cursor() as cursor:
         cursor.executemany(query, rows)
@@ -54,56 +34,61 @@ def upsert_rows(connection, schema, table, columns, rows, update_columns=None):
 def read_csv(path):
     with path.open(encoding="utf-8-sig", newline="") as stream:
         reader = csv.DictReader(stream)
-        headers = [name.strip().lower() for name in reader.fieldnames or []]
-        if len(set(headers)) != len(headers):
-            raise ValueError(f"{path.name}: duplicate column names")
-        reader.fieldnames = headers
+        reader.fieldnames = [name.strip().lower() for name in reader.fieldnames]
         return list(reader)
 
 
 def import_csvs(connection, directory, source_timezone):
-    datasets = []
-    for name in ("order_statuses", "user_behavior", "marketing_research"):
-        rows = []
-        seen = set()
-        for line, raw in enumerate(read_csv(directory / f"{name}.csv"), start=1):
-            try:
-                key = line if name == "marketing_research" else int(raw["id"])
-                if key in seen:
-                    raise ValueError(f"duplicate id {key}")
-                seen.add(key)
-                if name == "order_statuses":
-                    columns = ("id", "date_time", "client_id", "quantity", "payment_amount")
-                    row = (
-                        key,
-                        parse_timestamp(raw["date_time"], source_timezone),
-                        int(raw["client_id"]),
-                        int(raw["quantity"]),
-                        Decimal(raw["payment_amount"]),
-                    )
-                elif name == "user_behavior":
-                    columns = ("id", "date_time", "client_id")
-                    row = (
-                        key,
-                        parse_timestamp(raw["date_time"], source_timezone),
-                        int(raw["user_id"]),
-                    )
-                else:
-                    columns = ("id", "date_id", "sales_qty", "sales_amt")
-                    date_id = raw["date_id"].strip()
-                    if not re.fullmatch(r"\d{8}", date_id):
-                        raise ValueError("date_id must be YYYYMMDD")
-                    datetime.strptime(date_id, "%Y%m%d")
-                    row = (key, int(date_id), int(raw["sales_qty"]), Decimal(raw["sales_amt"]))
-                rows.append(row)
-            except (KeyError, ValueError, ArithmeticError) as error:
-                raise ValueError(f"{name}.csv row {line + 1}: {error}") from error
-        datasets.append((name, columns, rows))
-    for name, columns, rows in datasets:
-        upsert_rows(connection, "external_source", name, columns, rows)
+    order_statuses = [
+        (
+            int(row["id"]),
+            parse_timestamp(row["date_time"], source_timezone),
+            int(row["client_id"]),
+            int(row["quantity"]),
+            Decimal(row["payment_amount"]),
+        )
+        for row in read_csv(directory / "order_statuses.csv")
+    ]
+    insert_rows(
+        connection,
+        "external_source",
+        "order_statuses",
+        ("id", "date_time", "client_id", "quantity", "payment_amount"),
+        order_statuses,
+    )
 
+    user_behavior = [
+        (
+            int(row["id"]),
+            parse_timestamp(row["date_time"], source_timezone),
+            int(row["user_id"]),
+        )
+        for row in read_csv(directory / "user_behavior.csv")
+    ]
+    insert_rows(
+        connection,
+        "external_source",
+        "user_behavior",
+        ("id", "date_time", "client_id"),
+        user_behavior,
+    )
 
-if __name__ == "__main__":
-    settings = Settings.from_env()
-    with psycopg.connect(settings.dsn("source")) as connection:
-        import_csvs(connection, ROOT / "seeds" / "csv", settings.get("SOURCE_TIMEZONE"))
+    marketing = [
+        (
+            row_number,
+            int(row["date_id"]),
+            int(row["sales_qty"]),
+            Decimal(row["sales_amt"]),
+        )
+        for row_number, row in enumerate(
+            read_csv(directory / "marketing_research.csv"),
+            start=1,
+        )
+    ]
+    insert_rows(
+        connection,
+        "external_source",
+        "marketing_research",
+        ("id", "date_id", "sales_qty", "sales_amt"),
+        marketing,
+    )
