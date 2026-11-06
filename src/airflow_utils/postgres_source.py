@@ -32,18 +32,6 @@ TABLES = {
             "paid_at",
         ),
     ),
-    ("external_source", "order_statuses"): (
-        "pg_external_order_statuses",
-        ("id", "date_time", "client_id", "quantity", "payment_amount"),
-    ),
-    ("external_source", "user_behavior"): (
-        "pg_external_user_behavior",
-        ("id", "date_time", "client_id"),
-    ),
-    ("external_source", "marketing_research"): (
-        "pg_external_marketing_research",
-        ("id", "date_id", "sales_qty", "sales_amt"),
-    ),
 }
 
 
@@ -52,7 +40,7 @@ def extract_postgres_events(settings, last_loaded_id):
     query = """
         SELECT id, changed_at, object_schema, object_type, operation, object_value::text
         FROM public.logs
-        WHERE id > %s
+        WHERE id > %s AND object_schema = 'public'
         ORDER BY id
     """
     with psycopg.connect(settings.dsn("source")) as connection:

@@ -23,17 +23,6 @@ CREATE TABLE stg.pg_public_order (
     order_date TIMESTAMPTZ, delivery_date TIMESTAMPTZ, status TEXT,
     order_price NUMERIC(18,2), paid_at TIMESTAMPTZ, extracted_at TIMESTAMPTZ NOT NULL
 );
-CREATE TABLE stg.pg_external_order_statuses (
-    id BIGINT PRIMARY KEY, date_time TIMESTAMPTZ, client_id BIGINT,
-    quantity BIGINT, payment_amount NUMERIC(18,2), extracted_at TIMESTAMPTZ NOT NULL
-);
-CREATE TABLE stg.pg_external_user_behavior (
-    id BIGINT PRIMARY KEY, date_time TIMESTAMPTZ, client_id BIGINT, extracted_at TIMESTAMPTZ NOT NULL
-);
-CREATE TABLE stg.pg_external_marketing_research (
-    id BIGINT PRIMARY KEY, date_id INTEGER, sales_qty BIGINT, sales_amt NUMERIC(18,2),
-    extracted_at TIMESTAMPTZ NOT NULL
-);
 CREATE TABLE stg.pg_logs (
     id BIGINT PRIMARY KEY, changed_at TIMESTAMPTZ, object_schema TEXT, object_type TEXT,
     operation TEXT, object_value JSONB, extracted_at TIMESTAMPTZ NOT NULL

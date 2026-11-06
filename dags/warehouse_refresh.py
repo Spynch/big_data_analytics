@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 from airflow.sdk import dag, task
 
-from airflow_utils.refresh import import_external_csvs, refresh_warehouse
+from airflow_utils.refresh import refresh_warehouse
 from warehouse.config import Settings
 
 
@@ -17,15 +17,11 @@ from warehouse.config import Settings
     tags=["warehouse"],
 )
 def warehouse_refresh():
-    @task(task_id="import_external_csvs", do_xcom_push=False)
-    def import_csv():
-        import_external_csvs(Settings.from_env())
-
     @task(task_id="refresh_warehouse", do_xcom_push=False)
     def refresh():
         refresh_warehouse(Settings.from_env())
 
-    import_csv() >> refresh()
+    refresh()
 
 
 warehouse_refresh()

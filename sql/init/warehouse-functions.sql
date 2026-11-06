@@ -18,8 +18,3 @@ CREATE FUNCTION stg.source_date(value JSONB) RETURNS DATE
 LANGUAGE sql IMMUTABLE STRICT AS $$
     SELECT (stg.source_timestamp(value) AT TIME ZONE 'UTC')::date;
 $$;
-
-CREATE FUNCTION stg.marketing_date(value INTEGER) RETURNS DATE
-LANGUAGE sql IMMUTABLE STRICT AS $$
-    SELECT to_date(value::text, 'YYYYMMDD');
-$$;

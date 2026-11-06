@@ -43,6 +43,7 @@ def seed_mongo(database, directory):
 def seed(settings):
     with psycopg.connect(settings.dsn("source")) as connection:
         seed_postgres(connection, ROOT / "seeds" / "postgres")
+    with psycopg.connect(settings.dsn("warehouse")) as connection:
         import_csvs(connection, ROOT / "seeds" / "csv", settings.get("SOURCE_TIMEZONE"))
     with mongo_client(settings) as client:
         seed_mongo(client[settings.get("MONGO_DB")], ROOT / "seeds" / "mongo")

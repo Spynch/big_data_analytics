@@ -57,6 +57,7 @@ services:
     volumes:
       - pg_dwh_lab:/var/lib/postgresql/data
       - ./sql/init/warehouse-stg.sql:/docker-entrypoint-initdb.d/10-warehouse-stg.sql:ro
+      - ./sql/init/warehouse-external-source.sql:/docker-entrypoint-initdb.d/15-warehouse-external-source.sql:ro
       - ./sql/init/warehouse-dds.sql:/docker-entrypoint-initdb.d/20-warehouse-dds.sql:ro
       - ./sql/init/warehouse-functions.sql:/docker-entrypoint-initdb.d/30-warehouse-functions.sql:ro
       - ./sql/cdm/views.sql:/docker-entrypoint-initdb.d/40-cdm-views.sql:ro

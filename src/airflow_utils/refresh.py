@@ -12,13 +12,9 @@ from warehouse.csv_import import import_csvs
 logger = logging.getLogger(__name__)
 
 
-def import_external_csvs(settings):
-    with psycopg.connect(settings.dsn("source")) as connection:
-        import_csvs(connection, ROOT / "seeds" / "csv", settings.get("SOURCE_TIMEZONE"))
-
-
 def refresh_warehouse(settings):
     with psycopg.connect(settings.dsn("warehouse")) as connection:
+        import_csvs(connection, ROOT / "seeds" / "csv", settings.get("SOURCE_TIMEZONE"))
         extracted_at = datetime.now(timezone.utc)
         last_loaded_id = connection.execute(
             "SELECT coalesce(max(id), 0) FROM stg.pg_logs"
@@ -37,6 +33,4 @@ def refresh_warehouse(settings):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    settings = Settings.from_env()
-    import_external_csvs(settings)
-    refresh_warehouse(settings)
+    refresh_warehouse(Settings.from_env())

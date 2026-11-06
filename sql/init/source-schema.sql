@@ -52,28 +52,6 @@ $$;
 CREATE TRIGGER snapshot_order_price BEFORE INSERT ON public."order"
 FOR EACH ROW EXECUTE FUNCTION public.snapshot_order_price();
 
--- 2
-CREATE SCHEMA external_source;
-
-CREATE TABLE external_source.order_statuses (
-    id BIGINT PRIMARY KEY,
-    date_time TIMESTAMPTZ NOT NULL,
-    client_id BIGINT NOT NULL,
-    quantity BIGINT NOT NULL CHECK (quantity >= 0),
-    payment_amount NUMERIC(18,2) NOT NULL CHECK (payment_amount >= 0)
-);
-CREATE TABLE external_source.user_behavior (
-    id BIGINT PRIMARY KEY,
-    date_time TIMESTAMPTZ NOT NULL,
-    client_id BIGINT NOT NULL
-);
-CREATE TABLE external_source.marketing_research (
-    id BIGINT PRIMARY KEY,
-    date_id INTEGER NOT NULL,
-    sales_qty BIGINT NOT NULL CHECK (sales_qty >= 0),
-    sales_amt NUMERIC(18,2) NOT NULL CHECK (sales_amt >= 0)
-);
-
 -- 3
 CREATE TABLE public.logs (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -111,9 +89,7 @@ DECLARE item RECORD;
 BEGIN
     FOR item IN SELECT * FROM (VALUES
         ('public', 'master'), ('public', 'product'), ('public', 'master_product'),
-        ('public', 'client'), ('public', 'order'),
-        ('external_source', 'order_statuses'), ('external_source', 'user_behavior'),
-        ('external_source', 'marketing_research')
+        ('public', 'client'), ('public', 'order')
     ) AS tables(schema_name, table_name)
     LOOP
         EXECUTE format('CREATE TRIGGER audit_row AFTER INSERT OR UPDATE OR DELETE ON %I.%I

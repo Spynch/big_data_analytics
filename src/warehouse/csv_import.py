@@ -39,6 +39,12 @@ def read_csv(path):
 
 
 def import_csvs(connection, directory, source_timezone):
+    connection.execute("""
+        TRUNCATE TABLE
+            external_source.order_statuses,
+            external_source.user_behavior,
+            external_source.marketing_research
+    """)
     order_statuses = [
         (
             int(row["id"]),
