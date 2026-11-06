@@ -85,6 +85,8 @@ services:
     <<: *app
     build: .
     command: standalone
+    volumes:
+      - ./seeds/csv:/opt/warehouse/seeds/csv:ro
     environment:
       <<: *app-environment
       AIRFLOW_SCHEDULE: ${AIRFLOW_SCHEDULE:-@hourly}
@@ -107,11 +109,15 @@ services:
     <<: *app
     profiles: [tools]
     command: [python, -m, warehouse.seed]
+    volumes:
+      - ./seeds:/opt/warehouse/seeds:ro
 
   refresh:
     <<: *app
     profiles: [tools]
     command: [python, -m, airflow_utils.refresh]
+    volumes:
+      - ./seeds/csv:/opt/warehouse/seeds/csv:ro
 
 volumes:
   pg_source_lab:

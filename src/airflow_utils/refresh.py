@@ -7,8 +7,14 @@ from airflow_utils.loader import load_stg
 from airflow_utils.mongo_source import extract_mongo
 from airflow_utils.postgres_source import extract_postgres_events
 from warehouse.config import ROOT, Settings
+from warehouse.csv_import import import_csvs
 
 logger = logging.getLogger(__name__)
+
+
+def import_external_csvs(settings):
+    with psycopg.connect(settings.dsn("source")) as connection:
+        import_csvs(connection, ROOT / "seeds" / "csv", settings.get("SOURCE_TIMEZONE"))
 
 
 def refresh_warehouse(settings):
@@ -31,4 +37,6 @@ def refresh_warehouse(settings):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    refresh_warehouse(Settings.from_env())
+    settings = Settings.from_env()
+    import_external_csvs(settings)
+    refresh_warehouse(settings)
