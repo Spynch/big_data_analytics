@@ -17,12 +17,13 @@ MongoDB source ────┘
 
 ## Запуск
 
-Нужны Docker Desktop и Docker Compose.
+Нужны Docker Desktop, Docker Compose и `make`.
 
 ```bash
-docker compose up -d --build
-docker compose run --rm seed
+make run
 ```
+
+Команда собирает Docker-образ, запускает сервисы, загружает демонстрационные данные и выполняет первый ETL-процесс. Повторный запуск безопасен: загрузка демонстрационных данных выполняется идемпотентно.
 
 После запуска Airflow доступен по адресу http://127.0.0.1:8080. Логин и пароль по умолчанию: `admin` / `admin`.
 
@@ -31,7 +32,7 @@ Airflow работает в учебном режиме `standalone` и хран
 В интерфейсе Airflow можно запустить DAG `warehouse_refresh`. Для проверки без интерфейса можно выполнить ту же загрузку напрямую:
 
 ```bash
-docker compose run --rm refresh
+make refresh
 ```
 
 Результат первого задания:
@@ -45,14 +46,13 @@ ORDER BY report_period, client_id;
 Остановка:
 
 ```bash
-docker compose down
+make down
 ```
 
-Проверка Python-кода линтером:
+Проверка Compose-конфигурации и Python-кода:
 
 ```bash
-python -m pip install -r requirements.txt
-ruff check src dags
+make check
 ```
 
 Настройки портов и паролей при необходимости копируются из `.env.example` в локальный `.env`. Для учебного локального стенда заданы простые значения по умолчанию.
@@ -67,7 +67,7 @@ ruff check src dags
 - `warehouse-functions.sql` создаёт функции разбора MongoDB JSON и дат;
 - `sql/cdm/views.sql` создаёт витрины CDM.
 
-Команда `docker compose run --rm seed` добавляет демонстрационные данные в PostgreSQL и MongoDB. Три CSV читаются из `seeds/csv/`.
+Команда `make seed` добавляет демонстрационные данные в PostgreSQL и MongoDB. Три CSV читаются из `seeds/csv/`.
 
 ## Как работает загрузка
 
