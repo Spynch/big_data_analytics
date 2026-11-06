@@ -1,0 +1,7 @@
+client_id,name,phone,address,birthday,email
+1,Craft Client 1,+71111111101,Moscow,1990-05-10,craft1@example.test
+2,Craft Client 2,+71111111102,Moscow,1990-05-10,craft2@example.test
+3,Craft Client 3,+71111111103,Moscow,1990-05-10,craft3@example.test
+4,Craft Client 4,+71111111104,Moscow,1990-05-10,craft4@example.test
+5,Craft Client 5,+71111111105,Moscow,1990-05-10,craft5@example.test
+6,Craft Client 6,+71111111106,Moscow,1990-05-10,craft6@example.test

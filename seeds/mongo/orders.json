@@ -1,0 +1,44 @@
+[
+  {
+    "_id": {"$oid": "670000000000000000000001"},
+    "order_id": 1,
+    "restaurant_id": 1,
+    "client_id": 1,
+    "order_date": {"$date": "2026-02-01T10:00:00Z"},
+    "ordered_dish": [{"name": "Soup", "quantity": 1}, {"name": "Tea", "quantity": 1}],
+    "cost": {"$numberDecimal": "120.10"},
+    "payment": {"$numberDecimal": "100.10"},
+    "payed_by_bonuses": {"$numberDecimal": "20.00"},
+    "bonus_for_visit": {"$numberDecimal": "5.00"},
+    "final_status": "closed",
+    "update_time": {"$date": "2026-02-01T11:00:00Z"}
+  },
+  {
+    "_id": {"$oid": "670000000000000000000002"},
+    "order_id": 2,
+    "restaurant_id": 1,
+    "client_id": 1,
+    "order_date": {"$date": "2026-02-01T10:00:00Z"},
+    "ordered_dish": [{"name": "Soup", "quantity": 1}, {"name": "Tea", "quantity": 1}],
+    "cost": {"$numberDecimal": "120.10"},
+    "payment": {"$numberDecimal": "100.10"},
+    "payed_by_bonuses": {"$numberDecimal": "20.00"},
+    "bonus_for_visit": {"$numberDecimal": "5.00"},
+    "final_status": "closed",
+    "update_time": {"$date": "2026-02-01T11:00:00Z"}
+  },
+  {
+    "_id": {"$oid": "670000000000000000000003"},
+    "order_id": 3,
+    "restaurant_id": 1,
+    "client_id": 2,
+    "order_date": {"$date": "2026-02-01T10:00:00Z"},
+    "ordered_dish": [{"name": "Soup", "quantity": 1}, {"name": "Tea", "quantity": 1}],
+    "cost": {"$numberDecimal": "120.10"},
+    "payment": {"$numberDecimal": "100.10"},
+    "payed_by_bonuses": {"$numberDecimal": "20.00"},
+    "bonus_for_visit": {"$numberDecimal": "5.00"},
+    "final_status": "created",
+    "update_time": {"$date": "2026-02-01T11:00:00Z"}
+  }
+]

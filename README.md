@@ -67,7 +67,11 @@ make check
 - `warehouse-functions.sql` создаёт функции разбора MongoDB JSON и дат;
 - `sql/cdm/views.sql` создаёт витрины CDM.
 
-Команда `make seed` добавляет демонстрационные данные в PostgreSQL и MongoDB. Три CSV читаются из `seeds/csv/`.
+Команда `make seed` добавляет демонстрационные данные в PostgreSQL и MongoDB. Данные отделены от кода загрузчика:
+
+- `seeds/postgres/` содержит CSV-файлы исходной модели магазина;
+- `seeds/mongo/` содержит коллекции в Extended JSON с типами ObjectId, Date и Decimal128;
+- `seeds/csv/` содержит три внешних CSV-файла из задания.
 
 ## Как работает загрузка
 
@@ -84,7 +88,8 @@ make check
 | Что объяснять | Файл |
 |---|---|
 | Исходная модель и журнал | `sql/init/source-schema.sql` |
-| Демонстрационные данные | `src/warehouse/seed.py` |
+| Загрузка демонстрационных данных | `src/warehouse/seed.py` |
+| Наборы демонстрационных данных | `seeds/postgres/`, `seeds/mongo/`, `seeds/csv/` |
 | DAG Airflow | `dags/warehouse_refresh.py` |
 | Общий порядок ETL | `src/airflow_utils/refresh.py` |
 | Чтение журнала PostgreSQL | `src/airflow_utils/postgres_source.py` |

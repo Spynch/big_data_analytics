@@ -1,0 +1,11 @@
+[
+  {
+    "_id": {"$oid": "650000000000000000000001"},
+    "restaurant_id": 1,
+    "name": "Demo Restaurant",
+    "phone": "+72222222222",
+    "email": "restaurant@example.test",
+    "founding_day": {"$date": "2010-01-01T00:00:00Z"},
+    "address": "Moscow, Demo street 1"
+  }
+]

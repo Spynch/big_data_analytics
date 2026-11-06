@@ -25,7 +25,7 @@ run: up
 
 check: build
 	$(COMPOSE) config --quiet
-	$(COMPOSE) run --rm --no-deps refresh ruff check src dags
+	$(COMPOSE) run --rm --no-deps --entrypoint ruff refresh check src dags
 
 ps:
 	$(COMPOSE) ps

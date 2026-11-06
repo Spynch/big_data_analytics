@@ -1,0 +1,23 @@
+[
+  {
+    "_id": {"$oid": "660000000000000000000001"},
+    "client_id": 1,
+    "name": "Restaurant Client 1",
+    "phone": "+73333333331",
+    "email": "restaurant1@example.test",
+    "birthday": {"$date": "1995-06-15T00:00:00Z"},
+    "login": "guest1",
+    "address": {"city": "Moscow", "street": "Demo", "building": "2"},
+    "update_time": {"$date": "2026-02-01T10:00:00Z"}
+  },
+  {
+    "_id": {"$oid": "660000000000000000000002"},
+    "client_id": 2,
+    "name": "Restaurant Client 2",
+    "phone": "+73333333332",
+    "email": "restaurant2@example.test",
+    "birthday": {"$date": "1995-06-15T00:00:00Z"},
+    "login": "guest2",
+    "update_time": {"$date": "2026-02-01T10:00:00Z"}
+  }
+]
