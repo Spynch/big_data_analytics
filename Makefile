@@ -2,9 +2,7 @@ SHELL := /bin/sh
 
 COMPOSE ?= docker compose
 
-.DEFAULT_GOAL := help
-
-.PHONY: help build up seed refresh run check ps logs stop down
+.PHONY: build up seed refresh run check ps logs stop down
 
 build:
 	$(COMPOSE) build
@@ -21,7 +19,6 @@ refresh:
 run: up
 	$(COMPOSE) run --rm seed
 	$(COMPOSE) run --rm refresh
-	@printf '%s\n' 'Проект запущен: Airflow доступен по адресу http://127.0.0.1:8080'
 
 check: build
 	$(COMPOSE) config --quiet
