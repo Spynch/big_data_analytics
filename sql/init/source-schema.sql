@@ -1,5 +1,3 @@
-CREATE SCHEMA external_source;
-
 CREATE TABLE public.master (
     master_id BIGINT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -42,6 +40,21 @@ CREATE TABLE public."order" (
     CHECK ((status = 'done' AND delivery_date IS NOT NULL AND delivery_date >= order_date)
         OR (status <> 'done' AND delivery_date IS NULL))
 );
+
+CREATE FUNCTION public.snapshot_order_price() RETURNS trigger
+LANGUAGE plpgsql SET search_path = pg_catalog AS $$
+BEGIN
+    SELECT price INTO NEW.order_price FROM public.master_product
+    WHERE master_id = NEW.master_id AND product_id = NEW.product_id;
+    RETURN NEW;
+END;
+$$;
+CREATE TRIGGER snapshot_order_price BEFORE INSERT ON public."order"
+FOR EACH ROW EXECUTE FUNCTION public.snapshot_order_price();
+
+-- 2
+CREATE SCHEMA external_source;
+
 CREATE TABLE external_source.order_statuses (
     id BIGINT PRIMARY KEY,
     date_time TIMESTAMPTZ NOT NULL,
@@ -60,6 +73,8 @@ CREATE TABLE external_source.marketing_research (
     sales_qty BIGINT NOT NULL CHECK (sales_qty >= 0),
     sales_amt NUMERIC(18,2) NOT NULL CHECK (sales_amt >= 0)
 );
+
+-- 3
 CREATE TABLE public.logs (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     changed_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
@@ -78,17 +93,6 @@ BEGIN
     RETURN NULL;
 END;
 $$;
-
-CREATE FUNCTION public.snapshot_order_price() RETURNS trigger
-LANGUAGE plpgsql SET search_path = pg_catalog AS $$
-BEGIN
-    SELECT price INTO NEW.order_price FROM public.master_product
-    WHERE master_id = NEW.master_id AND product_id = NEW.product_id;
-    RETURN NEW;
-END;
-$$;
-CREATE TRIGGER snapshot_order_price BEFORE INSERT ON public."order"
-FOR EACH ROW EXECUTE FUNCTION public.snapshot_order_price();
 
 CREATE FUNCTION public.audit_truncate() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog AS $$

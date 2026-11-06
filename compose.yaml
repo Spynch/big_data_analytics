@@ -1,9 +1,9 @@
 name: ${COMPOSE_PROJECT_NAME:-warehouse-lab}
 
-x-runtime: &runtime
+x-app: &app
   image: warehouse-lab:latest
   pull_policy: never
-  environment: &runtime-env
+  environment: &app-environment
     SOURCE_HOST: postgres-source
     SOURCE_CONNECT_PORT: 5432
     SOURCE_DB: ${SOURCE_DB:-source}
@@ -20,22 +20,6 @@ x-runtime: &runtime
     MONGO_USER: ${MONGO_USER:-mongo_admin}
     MONGO_PASSWORD: ${MONGO_PASSWORD:-mongo_password}
     SOURCE_TIMEZONE: ${SOURCE_TIMEZONE:-Europe/Moscow}
-    AIRFLOW_DB: airflow
-    AIRFLOW_ADMIN: ${AIRFLOW_ADMIN:-admin}
-    AIRFLOW_ADMIN_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-admin}
-    AIRFLOW__CORE__EXECUTOR: LocalExecutor
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-    AIRFLOW__CORE__AUTH_MANAGER: airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
-    AIRFLOW__CORE__DAGS_FOLDER: /opt/warehouse/dags
-    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
-    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: ${AIRFLOW_ADMIN:-admin}:admin
-    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/logs/auth/passwords.json
-    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=}
-    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-warehouse-lab-jwt-secret}
-    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-api-server:8080/execution/
-    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: 'true'
-  volumes:
-    - airflow_logs_lab:/opt/airflow/logs
   depends_on: &databases
     postgres-source:
       condition: service_healthy
@@ -72,7 +56,6 @@ services:
       - '127.0.0.1:${DWH_PORT:-5434}:5432'
     volumes:
       - pg_dwh_lab:/var/lib/postgresql/data
-      - ./sql/init/airflow-db.sql:/docker-entrypoint-initdb.d/05-airflow-db.sql:ro
       - ./sql/init/warehouse-stg.sql:/docker-entrypoint-initdb.d/10-warehouse-stg.sql:ro
       - ./sql/init/warehouse-dds.sql:/docker-entrypoint-initdb.d/20-warehouse-dds.sql:ro
       - ./sql/init/warehouse-functions.sql:/docker-entrypoint-initdb.d/30-warehouse-functions.sql:ro
@@ -98,28 +81,19 @@ services:
       timeout: 10s
       retries: 30
 
-  seed:
-    <<: *runtime
-    profiles: [tools]
-    command: [python, -m, warehouse.seed]
-
-  refresh:
-    <<: *runtime
-    profiles: [tools]
-    command: [python, -m, airflow_utils.refresh]
-
-  airflow-init:
-    <<: *runtime
+  airflow:
+    <<: *app
     build: .
-    command: [python, -m, airflow_utils.airflow_entrypoint, db, migrate]
-
-  airflow-api-server:
-    <<: *runtime
-    command: [python, -m, airflow_utils.airflow_entrypoint, api-server]
-    depends_on:
-      <<: *databases
-      airflow-init:
-        condition: service_completed_successfully
+    command: standalone
+    environment:
+      <<: *app-environment
+      AIRFLOW_SCHEDULE: ${AIRFLOW_SCHEDULE:-@hourly}
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__CORE__DAGS_FOLDER: /opt/warehouse/dags
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+      AIRFLOW__CORE__AUTH_MANAGER: airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/simple_auth_passwords.json
     ports:
       - '127.0.0.1:${AIRFLOW_PORT:-8080}:8080'
     healthcheck:
@@ -129,30 +103,17 @@ services:
       retries: 30
       start_period: 30s
 
-  airflow-scheduler:
-    <<: *runtime
-    command: [python, -m, airflow_utils.airflow_entrypoint, scheduler]
-    depends_on:
-      <<: *databases
-      airflow-api-server:
-        condition: service_healthy
-    healthcheck:
-      test: [CMD, curl, --fail, http://localhost:8974/health]
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 30s
+  seed:
+    <<: *app
+    profiles: [tools]
+    command: [python, -m, warehouse.seed]
 
-  airflow-dag-processor:
-    <<: *runtime
-    command: [python, -m, airflow_utils.airflow_entrypoint, dag-processor]
-    depends_on:
-      <<: *databases
-      airflow-api-server:
-        condition: service_healthy
+  refresh:
+    <<: *app
+    profiles: [tools]
+    command: [python, -m, airflow_utils.refresh]
 
 volumes:
   pg_source_lab:
   pg_dwh_lab:
   mongo_source_lab:
-  airflow_logs_lab:
